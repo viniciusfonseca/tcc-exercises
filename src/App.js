@@ -53,15 +53,26 @@ function App() {
     }
 
     return (
-        <div class="container flex-col">
+        <div className="container flex-col">
             {
                 loadingExercises ?
                     <img src="/spinner.svg" /> :
                     !error &&
                     (
-                        <div class="flex-row center-b">
-                            <h2 class="flex"> Exercício { currentExercise + 1 } </h2>
-                            <div class="button" onClick={nextExercise}> Avançar </div>
+                        <div className="flex-col">
+                            <div className="flex-row center-b">
+                                <h2 className="flex"> Exercício { currentExercise + 1 } </h2>
+                                <div className="button" onClick={nextExercise}> Avançar </div>
+                            </div>
+                            {
+                                exercise.type === ExerciseTypes.FILL_BLANK ?
+                                    <FillInTheBlank exercise={exercise} /> :
+                                exercise.type === ExerciseTypes.IMG_ASSOC ?
+                                    <ImageAssociation exercise={exercise} /> :
+                                exercise.type === ExerciseTypes.ASSOC ?
+                                    <Association exercise={exercise} /> :
+                                null
+                            }
                         </div>
                     )
             }
@@ -69,16 +80,6 @@ function App() {
             {
                 error &&
                     <h4 className="flex-row center-a"> Ocorreu um erro ao buscar a prova. </h4>
-            }
-
-            {
-                exercise.type === ExerciseTypes.FILL_BLANK ?
-                    <FillInTheBlank exercise={exercise} /> :
-                exercise.type === ExerciseTypes.IMG_ASSOC ?
-                    <ImageAssociation exercise={exercise} /> :
-                exercise.type === ExerciseTypes.ASSOC ?
-                    <Association exercise={exercise} /> :
-                null
             }
             
         </div>
