@@ -34,7 +34,10 @@ function App() {
 
         api.get(`/test/${test_id}`).then(
             ({ data: test }) => {
-                setState({ exercises: test.exercises })
+                setState({
+                    exercises: test.exercises,
+                    loadingExercises: false
+                })
             }
         )
         .catch(
@@ -52,36 +55,46 @@ function App() {
         setState({ currentExercise: currentExercise + 1 })
     }
 
-    return (
-        <div className="container flex-col">
-            {
-                loadingExercises ?
-                    <img src="/spinner.svg" /> :
-                    !error &&
-                    (
-                        <div className="flex-col">
-                            <div className="flex-row center-b">
-                                <h2 className="flex"> Exercício { currentExercise + 1 } </h2>
-                                <div className="button" onClick={nextExercise}> Avançar </div>
-                            </div>
-                            {
-                                exercise.type === ExerciseTypes.FILL_BLANK ?
-                                    <FillInTheBlank exercise={exercise} /> :
-                                exercise.type === ExerciseTypes.IMG_ASSOC ?
-                                    <ImageAssociation exercise={exercise} /> :
-                                exercise.type === ExerciseTypes.ASSOC ?
-                                    <Association exercise={exercise} /> :
-                                null
-                            }
-                        </div>
-                    )
-            }
+    const solveTest = async () => {
+        
+    }
 
-            {
-                error &&
+    return (
+        <div className="flex-row center-a">
+            <div className="container flex-col">
+                {
+                    loadingExercises ?
+                        <img src="/spinner.svg" /> :
+                        !error &&
+                        (
+                            <div className="flex-col">
+                                <div className="flex-row center-b">
+                                    <h2 className="flex"> Exercício { currentExercise + 1 } </h2>
+                                    {
+                                        currentExercise < exercises.length - 1 ?
+                                        <div className="button" onClick={nextExercise}> Avançar </div> :
+                                        <div className="button" onClick={solveTest}> Concluído </div>
+                                    }
+                                </div>
+                                {
+                                    exercise.type === ExerciseTypes.FILL_BLANK ?
+                                        <FillInTheBlank exercise={exercise} /> :
+                                    exercise.type === ExerciseTypes.IMG_ASSOC ?
+                                        <ImageAssociation exercise={exercise} /> :
+                                    exercise.type === ExerciseTypes.ASSOC ?
+                                        <Association exercise={exercise} /> :
+                                    null
+                                }
+                                </div>
+                        )
+                    }
+
+                {
+                    error &&
                     <h4 className="flex-row center-a"> Ocorreu um erro ao buscar a prova. </h4>
-            }
-            
+                }
+                
+            </div>
         </div>
     );
 }
