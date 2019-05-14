@@ -1,44 +1,76 @@
 import React from 'react'
+import useReduxState from '../useReduxState';
 
-const FillInTheBlank = ({ exercises, solved }) => {
+const WordDrag = ({
+    id,
+    children
+}) => {
+
+    const setDraggedEl = () => {
+        window.dragged = id
+    }
+
+    const unsetDraggedEl = () => {
+        window.dragged = null
+    }
+
+    return (
+        <span className="word-drag"
+            draggable
+            onDragStart={setDraggedEl}
+            onDragEnd={unsetDraggedEl}> {children} </span>
+    )
+}
+
+const FillInTheBlank = ({ exercise, response, onChange }) => {
+
+    const [ getState, setState ] = useReduxState({
+        col2res: response
+    }, [exercise])
+
+    const { col2res } = getState()
+
+    const allowDragOver = e => {
+        e.preventDefault()
+    }
+
+    const onDrop = () => {
+        console.log(window.dragged)
+    }
+
+    const setBlankWidth = () => {
+
+    }
+
+    const unsetBlankWidth = () => {
+
+    }
 
     return (
         <React.Fragment>
             <div>
                 <p> Preencha as lacunas com as palavras mais adequadas. </p>
             </div>
-            <div class="words">
-                <span class="word-drag"> airplane </span>
-                <span class="word-drag"> book </span>
-                <span class="word-drag"> car </span>
-                <span class="word-drag"> food </span>
-                <span class="word-drag"> dog </span>
-                <span class="word-drag"> hello </span>
-                <span class="word-drag"> computer </span>
-                <span class="word-drag"> woman </span>
+            <div className="words">
+            {
+                exercise.col1.map(
+                    ({ text, id }, i) => <WordDrag id={id} key={`col1-${i}`}> {text} </WordDrag>
+                )
+            }
             </div>
-            <div class="fill">
-                <div>
-                    1. I want to read a new <span class="blank"></span>.
-                </div>
-                <div>
-                    2. Yesterday, I bought a new <span class="blank"></span> to hit the road.
-                </div>
-                <div>
-                    3. Today, I will travel by <span class="blank"></span> for the first time.
-                </div>
-                <div>
-                    4. Next week, I will take my <span class="blank"></span> to the veterinary.
-                </div>
-                <div>
-                    5. I want to go to the grocery store and buy some <span class="blank"></span>.
-                </div>
-                <div>
-                    6. I like to play games on the <span class="blank"></span>.
-                </div>
-                <div>
-                    7. <span class="blank"></span>, Jack! Nice to meet you.
-                </div>
+            <div className="fill">
+            {
+                exercise.col2.map(
+                    (context, i) => {
+                        const [ fp, sp ] = context.split("$word$")
+                        return (
+                            <div key={`ctx-${i}`} onDragOver={allowDragOver} onDrop={onDrop}>
+                                {i+1}. { fp } <span className="blank"></span> { sp }
+                            </div>
+                        )
+                    }
+                )
+            }
             </div>
         </React.Fragment>
     )

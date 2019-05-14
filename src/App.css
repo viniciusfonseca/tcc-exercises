@@ -38,7 +38,8 @@ body {
 }
 
 .word-col select {
-  width: 40px
+  width: 80px;
+  margin-right: 20px
 }
 
 .word-col img {
@@ -88,4 +89,8 @@ body {
 
 .height-130 {
   height: 130px;
+}
+
+.thumb-wrap {
+  height: 160px
 }

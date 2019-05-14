@@ -1,46 +1,57 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import useReduxState from '../useReduxState';
 
-const Association = ({ exercises }) => {
+const Association = ({
+    response,
+    exercise,
+    onChange
+}) => {
 
     const [ getState, setState ] = useReduxState({
-        translations: [],
-        loadingTranslations: true
-    })
+        col2res: response
+    }, [exercise])
 
-    useEffect(() => {
+    const { col2res } = getState()
 
-    }, [])
-
-    const { translations, loadingTranslations } = getState()
+    const setCol2Res = (i, id) => {
+        const nextCol2Res = col2res.map(
+            (id0, j) => i !== j ? id0 : id
+        )
+        onChange(nextCol2Res)
+        setState({ col2res: nextCol2Res })
+    }
 
     return (
         <div className="flex-col">
             <p> Associe as palavras às suas respectivas traduções. </p>
             <div className="flex-row">
                 <div className="flex-col flex word-col">
-                <span>1. dog</span>
-                <span>2. table</span>
-                <span>3. book</span>
-                <span>4. food</span>
-                <span>5. airplane</span>
-                <span>6. car</span>
-                <span>7. hello</span>
-                <span>8. woman</span>
-                <span>9. computer</span>
-                <span>10. glass</span>
+                {
+                    exercise.col1.map(
+                        ({ text }, i) => <span key={`col1-${i}`}>{i+1}. {text}</span>
+                    )
+                }
                 </div>
                 <div className="flex-col flex word-col">
-                    <span><select></select> livro </span>
-                    <span><select></select> avião </span>
-                    <span><select></select> olá </span>
-                    <span><select></select> cachorro </span>
-                    <span><select></select> mulher </span>
-                    <span><select></select> carro </span>
-                    <span><select></select> computador </span>
-                    <span><select></select> vidro </span>
-                    <span><select></select> mesa </span>
-                    <span><select></select> comida </span>
+                {
+                    exercise.col2.map(
+                        (text, i) =>
+                            <span key={`col2-${i}`}>
+                                <select value={col2res[i]} onChange={event => setCol2Res(i, +event.target.value)}>
+                                    <option disabled value=""></option>
+                                    {
+                                        exercise.col1.map(
+                                            ({ text, id }, j) =>
+                                                <option value={id} key={`opt-${i}-${j}`}>
+                                                    {j + 1}. { text }
+                                                </option>
+                                        )
+                                    }
+                                </select>
+                                {text}
+                            </span>
+                    )
+                }
                 </div>
             </div>
         </div>

@@ -7,9 +7,9 @@ const reducer = (state, action) =>
         ...action.payload
     })
 
-const useReduxState = (initialState = {}) => {
+const useReduxState = (initialState = {}, deps = []) => {
 
-    const store = useMemo(() => createStore(reducer, initialState), [])
+    const store = useMemo(() => createStore(reducer, initialState), deps)
     const [ _, forceUpdate ] = useReducer(x => x + 1, 0)
 
     const getState = store.getState.bind(store)

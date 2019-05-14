@@ -18,14 +18,16 @@ function App() {
         loadingExercises: true,
         exercises: [],
         currentExercise: 0,
-        error: null
+        error: null,
+        responses: []
     })
 
     const {
         loadingExercises,
         exercises,
         error,
-        currentExercise
+        currentExercise,
+        responses
     } = getState()
 
     useEffect(() => {
@@ -36,7 +38,8 @@ function App() {
             ({ data: test }) => {
                 setState({
                     exercises: test.exercises,
-                    loadingExercises: false
+                    loadingExercises: false,
+                    responses: Array(test.exercises.length).fill(0).map((_, i) => Array(test.exercises[i].col1.length).fill(""))
                 })
             }
         )
@@ -55,8 +58,22 @@ function App() {
         setState({ currentExercise: currentExercise + 1 })
     }
 
+    const prevExercise = () => {
+        setState({ currentExercise: currentExercise - 1 })
+    }
+
+    const updateResponse = response => {
+        setState({ responses: responses.map((res, i) => currentExercise !== i ? res : response) })
+    }
+
     const solveTest = async () => {
         
+    }
+
+    const exerciseProps = {
+        exercise,
+        onChange: updateResponse,
+        response: responses[currentExercise]
     }
 
     return (
@@ -71,18 +88,27 @@ function App() {
                                 <div className="flex-row center-b">
                                     <h2 className="flex"> Exercício { currentExercise + 1 } </h2>
                                     {
+                                        currentExercise > 0 &&
+                                        <div className="button" style={{ marginRight: '10px' }} onClick={prevExercise}> Voltar </div>
+                                    }
+                                    {
                                         currentExercise < exercises.length - 1 ?
                                         <div className="button" onClick={nextExercise}> Avançar </div> :
                                         <div className="button" onClick={solveTest}> Concluído </div>
                                     }
                                 </div>
                                 {
+                                    currentExercise === exercises.length - 1 &&
+                                    JSON.stringify(responses)
+                                }
+                                {
+                                    loadingExercises ? null :
                                     exercise.type === ExerciseTypes.FILL_BLANK ?
-                                        <FillInTheBlank exercise={exercise} /> :
+                                        <FillInTheBlank {...exerciseProps} /> :
                                     exercise.type === ExerciseTypes.IMG_ASSOC ?
-                                        <ImageAssociation exercise={exercise} /> :
+                                        <ImageAssociation {...exerciseProps} /> :
                                     exercise.type === ExerciseTypes.ASSOC ?
-                                        <Association exercise={exercise} /> :
+                                        <Association {...exerciseProps} /> :
                                     null
                                 }
                                 </div>
