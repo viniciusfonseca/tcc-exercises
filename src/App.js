@@ -5,6 +5,7 @@ import api from './api';
 import FillInTheBlank from './exercises/FillInTheBlank';
 import Association from './exercises/Association';
 import ImageAssociation from './exercises/ImageAssociation';
+import Dictionary from './Dictionary';
 
 const ExerciseTypes = {
     FILL_BLANK: 0,
@@ -12,14 +13,23 @@ const ExerciseTypes = {
     IMG_ASSOC: 2
 }
 
+const RES_MOCK = [
+    [45,42,52,49,48,50,47,51,46,44],
+    [54,62,53,61,58,59,60,55,57,56],
+    [68,72,66,70,67,64,69,63,71,65],
+    [74,77,73,81,75,80,79,78,76,82],
+    [85,87,88,91,94,86,90,83,84,89]
+]
+
 function App() {
 
-    const [getState, setState] = useReduxState({
+    const [ getState, setState ] = useReduxState({
         loadingExercises: true,
         exercises: [],
         currentExercise: 0,
         error: null,
-        responses: []
+        responses: [],
+        dictionary: null
     })
 
     const {
@@ -27,12 +37,22 @@ function App() {
         exercises,
         error,
         currentExercise,
-        responses
+        responses,
+        dictionary
     } = getState()
 
     useEffect(() => {
 
-        const test_id = new URLSearchParams(window.location.search).get('test_id')
+        const qs = new URLSearchParams(window.location.search)
+        const test_id = qs.get('test_id')
+        const user_id = qs.get('user_id')
+
+        if (!test_id) {
+            api.get(`/dictionary/${user_id}`).then(({ data: dictionary }) => {
+                setState({ dictionary })
+            })
+            return
+        }
 
         api.get(`/test/${test_id}`).then(
             ({ data: test }) => {
@@ -67,6 +87,8 @@ function App() {
     }
 
     const solveTest = async () => {
+        const { data: res } = await api.post('/solve', responses)
+
         
     }
 
@@ -74,6 +96,16 @@ function App() {
         exercise,
         onChange: updateResponse,
         response: responses[currentExercise]
+    }
+
+    if (dictionary) {
+        return (
+            <div className="flex-row center-a">
+                <div className="container flex-col">
+                    <Dictionary translations={dictionary} />
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -97,10 +129,6 @@ function App() {
                                         <div className="button" onClick={solveTest}> Concluído </div>
                                     }
                                 </div>
-                                {
-                                    currentExercise === exercises.length - 1 &&
-                                    JSON.stringify(responses)
-                                }
                                 {
                                     loadingExercises ? null :
                                     exercise.type === ExerciseTypes.FILL_BLANK ?

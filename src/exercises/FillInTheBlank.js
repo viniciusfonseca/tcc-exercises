@@ -34,8 +34,20 @@ const FillInTheBlank = ({ exercise, response, onChange }) => {
         e.preventDefault()
     }
 
-    const onDrop = () => {
-        console.log(window.dragged)
+    const onDrop = i => () => {
+        const nextCol2Res = col2res.map((r, j) => i !== j ? r : window.dragged)
+        onChange(nextCol2Res)
+        setState({
+            col2res: nextCol2Res
+        })
+    }
+
+    const removeBlank = i => () => {
+        const nextCol2Res = col2res.map((r, j) => i !== j ? r : "")
+        onChange(nextCol2Res)
+        setState({
+            col2res: nextCol2Res
+        })
     }
 
     const setBlankWidth = () => {
@@ -53,7 +65,7 @@ const FillInTheBlank = ({ exercise, response, onChange }) => {
             </div>
             <div className="words">
             {
-                exercise.col1.map(
+                exercise.col1.filter(({ id }) => !col2res.includes(id)).map(
                     ({ text, id }, i) => <WordDrag id={id} key={`col1-${i}`}> {text} </WordDrag>
                 )
             }
@@ -63,9 +75,15 @@ const FillInTheBlank = ({ exercise, response, onChange }) => {
                 exercise.col2.map(
                     (context, i) => {
                         const [ fp, sp ] = context.split("$word$")
+                        const blankContent = (exercise.col1.find(({ id }) => id === col2res[i]) || {}).text || ""
                         return (
-                            <div key={`ctx-${i}`} onDragOver={allowDragOver} onDrop={onDrop}>
-                                {i+1}. { fp } <span className="blank"></span> { sp }
+                            <div key={`ctx-${i}`} onDragOver={allowDragOver} onDrop={onDrop(i)}>
+                                {i+1}. { fp }
+                                <span className="blank">
+                                    { blankContent }
+                                    { blankContent && <span className="del" onClick={removeBlank(i)}> X </span> }
+                                </span>
+                                { sp }
                             </div>
                         )
                     }
