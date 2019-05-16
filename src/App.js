@@ -41,14 +41,15 @@ function App() {
         dictionary
     } = getState()
 
+    const qs = new URLSearchParams(window.location.search)
+    const test_id = qs.get('test_id')
+    const user_id = qs.get('user_id')
+
     useEffect(() => {
 
-        const qs = new URLSearchParams(window.location.search)
-        const test_id = qs.get('test_id')
-        const user_id = qs.get('user_id')
 
         if (!test_id) {
-            api.get(`/dictionary/${user_id}`).then(({ data: dictionary }) => {
+            api.get(`/user/${user_id}/dictionary`).then(({ data: dictionary }) => {
                 setState({ dictionary })
             })
             return
@@ -87,7 +88,7 @@ function App() {
     }
 
     const solveTest = async () => {
-        const { data: res } = await api.post('/solve', responses)
+        const { data: corrections } = await api.post(`test/${test_id}/solve`, responses)
 
         
     }
