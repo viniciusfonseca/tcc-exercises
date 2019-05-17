@@ -6,6 +6,7 @@ import FillInTheBlank from './exercises/FillInTheBlank';
 import Association from './exercises/Association';
 import ImageAssociation from './exercises/ImageAssociation';
 import Dictionary from './Dictionary';
+import Tests from './Tests';
 
 const ExerciseTypes = {
     FILL_BLANK: 0,
@@ -21,6 +22,11 @@ const RES_MOCK = [
     [85,87,88,91,94,86,90,83,84,89]
 ]
 
+const APP_SECTION = {
+    DICT: 0,
+    TESTS: 1
+}
+
 function App() {
 
     const [ getState, setState ] = useReduxState({
@@ -29,7 +35,11 @@ function App() {
         currentExercise: 0,
         error: null,
         responses: [],
-        dictionary: null
+        dictionary: null,
+        section: APP_SECTION.DICT,
+        tests: [],
+        solving: false,
+        solution: []
     })
 
     const {
@@ -38,7 +48,9 @@ function App() {
         error,
         currentExercise,
         responses,
-        dictionary
+        dictionary,
+        section,
+        tests
     } = getState()
 
     const qs = new URLSearchParams(window.location.search)
@@ -52,6 +64,9 @@ function App() {
             api.get(`/user/${user_id}/dictionary`).then(({ data: dictionary }) => {
                 setState({ dictionary })
             })
+            api.get(`/user/${user_id}/tests`).then(({ data: tests }) => {
+                setState({ tests })
+            })
             return
         }
 
@@ -60,7 +75,8 @@ function App() {
                 setState({
                     exercises: test.exercises,
                     loadingExercises: false,
-                    responses: Array(test.exercises.length).fill(0).map((_, i) => Array(test.exercises[i].col1.length).fill(""))
+                    responses: Array(test.exercises.length).fill(0).map(
+                        (_, i) => Array(test.exercises[i].col1.length).fill(""))
                 })
             }
         )
@@ -99,11 +115,25 @@ function App() {
         response: responses[currentExercise]
     }
 
+    const changeSection = section => () => setState({ section })
+
     if (dictionary) {
         return (
             <div className="flex-row center-a">
                 <div className="container flex-col">
-                    <Dictionary translations={dictionary} />
+                    <div className="flex-row" style={{ marginBottom: '15px' }}>
+                        <div className="button" style={{ marginRight: '15px' }}
+                            onClick={changeSection(APP_SECTION.DICT)}> Dicionário </div>
+                        <div className="button"
+                            onClick={changeSection(APP_SECTION.TESTS)}> Provas </div>
+                    </div>
+                {
+                    section === APP_SECTION.DICT ?
+                    <Dictionary translations={dictionary} /> :
+                    section === APP_SECTION.TESTS ?
+                    <Tests tests={tests} /> :
+                    null
+                }
                 </div>
             </div>
         )
