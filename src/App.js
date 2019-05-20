@@ -21,6 +21,11 @@ const RES_MOCK = [
     [85,87,88,91,94,86,90,83,84,89]
 ]
 
+const SECTIONS = {
+    DICTIONARY: 0,
+    TESTS: 1
+}
+
 function App() {
 
     const [ getState, setState ] = useReduxState({
@@ -29,7 +34,10 @@ function App() {
         currentExercise: 0,
         error: null,
         responses: [],
-        dictionary: null
+        dictionary: null,
+        solved: false,
+        section: SECTIONS.DICTIONARY,
+        solutions: {}
     })
 
     const {
@@ -38,14 +46,16 @@ function App() {
         error,
         currentExercise,
         responses,
-        dictionary
+        dictionary,
+        solved,
+        section
     } = getState()
+    
+    const qs = new URLSearchParams(window.location.search)
+    const test_id = qs.get('test_id')
+    const user_id = qs.get('user_id')
 
     useEffect(() => {
-
-        const qs = new URLSearchParams(window.location.search)
-        const test_id = qs.get('test_id')
-        const user_id = qs.get('user_id')
 
         if (!test_id) {
             api.get(`/dictionary/${user_id}`).then(({ data: dictionary }) => {
@@ -83,13 +93,22 @@ function App() {
     }
 
     const updateResponse = response => {
-        setState({ responses: responses.map((res, i) => currentExercise !== i ? res : response) })
+        setState({
+            responses: {
+                ...getState().responses,
+                [exercises[currentExercise].id]: response
+            }
+        })
     }
 
     const solveTest = async () => {
-        const { data: res } = await api.post('/solve', responses)
+        const { data: solutions } = await api.post(`/test/${test_id}/solve`, responses)
 
-        
+        setState({
+            solved: true,
+            solutions
+        })
+
     }
 
     const exerciseProps = {
