@@ -4,6 +4,8 @@ import useReduxState from '../useReduxState';
 const Association = ({
     response,
     exercise,
+    solution,
+    solved,
     onChange
 }) => {
 
@@ -35,21 +37,37 @@ const Association = ({
                 <div className="flex-col flex word-col">
                 {
                     exercise.col2.map(
-                        (text, i) =>
-                            <span key={`col2-${i}`}>
-                                <select value={col2res[i]} onChange={event => setCol2Res(i, +event.target.value)}>
-                                    <option disabled value=""></option>
+                        (text, i) => {
+                            const correct = solved && col2res[i] === solution[i]
+                            return (
+                                <div className="flex-row center-b">
+                                    <span className="flex-row" key={`col2-${i}`}>
+                                        <select disabled={solved} value={col2res[i]} onChange={event => setCol2Res(i, +event.target.value)}>
+                                            <option disabled value=""></option>
+                                            {
+                                                exercise.col1.map(
+                                                    ({ text, id }, j) =>
+                                                        <option value={id} key={`opt-${i}-${j}`}>
+                                                            { j + 1 }. { text }
+                                                        </option>
+                                                )
+                                            }
+                                        </select>
+                                        {text}
+                                    </span>
                                     {
-                                        exercise.col1.map(
-                                            ({ text, id }, j) =>
-                                                <option value={id} key={`opt-${i}-${j}`}>
-                                                    {j + 1}. { text }
-                                                </option>
-                                        )
+                                        solved &&
+                                        <span className="flex-row">
+                                        {
+                                            correct ?
+                                                <div style={{ color: 'green', fontSize: '28px' }}> &#10004; </div> :
+                                                <div style={{ fontWeight: 'bold', color: 'red' }}> X </div>
+                                        }
+                                        </span>
                                     }
-                                </select>
-                                {text}
-                            </span>
+                                </div>
+                            )
+                        }
                     )
                 }
                 </div>

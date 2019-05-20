@@ -59,6 +59,7 @@ body {
   border-radius: 7px;
   color: #FFF;
   cursor: pointer;
+  user-select: none
 }
 
 .blank {
@@ -107,4 +108,10 @@ body {
   cursor: pointer;
   margin-left: 5px;
   padding-bottom: 2px
+}
+
+td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center
 }

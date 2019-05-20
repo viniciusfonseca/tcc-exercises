@@ -22,7 +22,13 @@ const WordDrag = ({
     )
 }
 
-const FillInTheBlank = ({ exercise, response, onChange }) => {
+const FillInTheBlank = ({
+    exercise,
+    response,
+    onChange,
+    solution,
+    solved
+}) => {
 
     const [ getState, setState ] = useReduxState({
         col2res: response
@@ -63,27 +69,38 @@ const FillInTheBlank = ({ exercise, response, onChange }) => {
             <div>
                 <p> Preencha as lacunas com as palavras mais adequadas. </p>
             </div>
-            <div className="words">
             {
-                exercise.col1.filter(({ id }) => !col2res.includes(id)).map(
-                    ({ text, id }, i) => <WordDrag id={id} key={`col1-${i}`}> {text} </WordDrag>
-                )
+                !solved &&
+                <div className="words">
+                {
+                    exercise.col1.filter(({ id }) => !col2res.includes(id)).map(
+                        ({ text, id }, i) => <WordDrag id={id} key={`col1-${i}`}> {text} </WordDrag>
+                    )
+                }
+                </div>
             }
-            </div>
             <div className="fill">
             {
                 exercise.col2.map(
                     (context, i) => {
                         const [ fp, sp ] = context.split("$word$")
                         const blankContent = (exercise.col1.find(({ id }) => id === col2res[i]) || {}).text || ""
+                        const correct = solved && col2res[i] === solution[i]
                         return (
                             <div key={`ctx-${i}`} onDragOver={allowDragOver} onDrop={onDrop(i)}>
                                 {i+1}. { fp }
                                 <span className="blank">
                                     { blankContent }
-                                    { blankContent && <span className="del" onClick={removeBlank(i)}> X </span> }
+                                    { blankContent && !solved && <span className="del" onClick={removeBlank(i)}> X </span> }
                                 </span>
                                 { sp }
+                                {
+                                    solved && (
+                                        correct ?
+                                            <span style={{ color: 'green', fontSize: '28px' }}> &#10004; </span> :
+                                            <span style={{ fontWeight: 'bold', color: 'red' }}> X </span>
+                                    )
+                                }
                             </div>
                         )
                     }

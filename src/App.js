@@ -6,6 +6,7 @@ import FillInTheBlank from './exercises/FillInTheBlank';
 import Association from './exercises/Association';
 import ImageAssociation from './exercises/ImageAssociation';
 import Dictionary from './Dictionary';
+import Tests from './Tests';
 
 const ExerciseTypes = {
     FILL_BLANK: 0,
@@ -13,16 +14,8 @@ const ExerciseTypes = {
     IMG_ASSOC: 2
 }
 
-const RES_MOCK = [
-    [45,42,52,49,48,50,47,51,46,44],
-    [54,62,53,61,58,59,60,55,57,56],
-    [68,72,66,70,67,64,69,63,71,65],
-    [74,77,73,81,75,80,79,78,76,82],
-    [85,87,88,91,94,86,90,83,84,89]
-]
-
-const SECTIONS = {
-    DICTIONARY: 0,
+const APP_SECTION = {
+    DICT: 0,
     TESTS: 1
 }
 
@@ -35,8 +28,9 @@ function App() {
         error: null,
         responses: [],
         dictionary: null,
+        section: APP_SECTION.DICT,
+        tests: [],
         solved: false,
-        section: SECTIONS.DICTIONARY,
         solutions: {}
     })
 
@@ -48,7 +42,9 @@ function App() {
         responses,
         dictionary,
         solved,
-        section
+        section,
+        tests,
+        solutions
     } = getState()
     
     const qs = new URLSearchParams(window.location.search)
@@ -57,19 +53,28 @@ function App() {
 
     useEffect(() => {
 
+        window.__IDIOM_GYM_EXERCISE__ = true
+
         if (!test_id) {
-            api.get(`/dictionary/${user_id}`).then(({ data: dictionary }) => {
+            api.get(`/user/${user_id}/dictionary`).then(({ data: dictionary }) => {
                 setState({ dictionary })
+            })
+            api.get(`/user/${user_id}/tests`).then(({ data: tests }) => {
+                setState({ tests })
             })
             return
         }
 
         api.get(`/test/${test_id}`).then(
             ({ data: test }) => {
+                const responses = {}
+                for (const { id, col2 } of test.exercises) {
+                    responses[id] = Array(col2.length).fill("")
+                }
                 setState({
                     exercises: test.exercises,
                     loadingExercises: false,
-                    responses: Array(test.exercises.length).fill(0).map((_, i) => Array(test.exercises[i].col1.length).fill(""))
+                    responses
                 })
             }
         )
@@ -82,7 +87,6 @@ function App() {
 
     }, [])
 
-    const exercise = exercises[currentExercise]
 
     const nextExercise = () => {
         setState({ currentExercise: currentExercise + 1 })
@@ -96,7 +100,7 @@ function App() {
         setState({
             responses: {
                 ...getState().responses,
-                [exercises[currentExercise].id]: response
+                [exercise.id]: response
             }
         })
     }
@@ -106,25 +110,57 @@ function App() {
 
         setState({
             solved: true,
+            currentExercise: 0,
             solutions
         })
 
     }
+    
+    const changeSection = section => () => setState({ section })
+    
+    if (dictionary) {
+
+        const onRemove = trId => {
+            setState({ dictionary: dictionary.filter(({ id }) => id !== trId) })
+        }
+
+        const onRemoveAll = () => {
+            setState({ dictionary: [] })
+        }
+
+        return (
+            <div className="flex-row center-a">
+                <div className="container flex-col">
+                    <div className="flex-row" style={{ marginBottom: '15px' }}>
+                        <div className="button" style={{ marginRight: '15px' }}
+                            onClick={changeSection(APP_SECTION.DICT)}> Dicionário </div>
+                        <div className="button"
+                            onClick={changeSection(APP_SECTION.TESTS)}> Provas </div>
+                    </div>
+                {
+                    section === APP_SECTION.DICT ?
+                    <Dictionary
+                        translations={dictionary}
+                        onRemove={onRemove}
+                        onRemoveAll={onRemoveAll}
+                    /> :
+                    section === APP_SECTION.TESTS ?
+                    <Tests tests={tests} /> :
+                    null
+                }
+                </div>
+            </div>
+        )
+    }
+    
+    const exercise = exercises[currentExercise] || {}
 
     const exerciseProps = {
         exercise,
         onChange: updateResponse,
-        response: responses[currentExercise]
-    }
-
-    if (dictionary) {
-        return (
-            <div className="flex-row center-a">
-                <div className="container flex-col">
-                    <Dictionary translations={dictionary} />
-                </div>
-            </div>
-        )
+        response: responses[exercise.id],
+        solution: solutions[exercise.id],
+        solved
     }
 
     return (
@@ -145,9 +181,17 @@ function App() {
                                     {
                                         currentExercise < exercises.length - 1 ?
                                         <div className="button" onClick={nextExercise}> Avançar </div> :
-                                        <div className="button" onClick={solveTest}> Concluído </div>
+                                        !solved && <div className="button" onClick={solveTest}> Concluído </div>
                                     }
                                 </div>
+
+                                {
+                                    solved &&
+                                    <h3 style={{ color: 'green' }}>
+                                        Prova concluída! Sua nota foi { ((solutions.points / solutions.total_points || 0) * 10).toFixed(1) } ({ solutions.points } acerto(s) de { solutions.total_points }).
+                                        Você pode refazer esse teste, se quiser.
+                                    </h3> }
+
                                 {
                                     loadingExercises ? null :
                                     exercise.type === ExerciseTypes.FILL_BLANK ?
